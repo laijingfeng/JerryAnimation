@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>JerryABEditor</name>
+    </assembly>
+    <members>
+        <member name="M:Jerry.BuildScript.FileNameFilter(System.String,System.Collections.Generic.List{System.String},System.Boolean)">
+            <summary>
+            文件名过滤
+            </summary>
+            <param name="fileName"></param>
+            <param name="fileNameFilter"></param>
+            <param name="include"></param>
+            <returns>通过</returns>
+        </member>
+        <member name="T:Jerry.BuildScript.Platform">
+            <summary>
+            平台，决定AB的Manifest文件名
+            </summary>
+        </member>
+    </members>
+</doc>
