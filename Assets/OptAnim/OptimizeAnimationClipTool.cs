@@ -204,6 +204,19 @@ namespace EditorTool
         static List<string> _Errors = new List<string>();
         static int _Index = 0;
 
+        [MenuItem("Assets/Animation/输出大小")]
+        public static void PrintSize()
+        {
+            _AnimOptList = FindAnims();
+            if (_AnimOptList.Count > 0)
+            {
+                foreach (AnimationOpt opt in _AnimOptList)
+                {
+                    opt.LogOrigin();
+                }
+            }
+        }
+
         [MenuItem("Assets/Animation/裁剪浮点数去除Scale")]
         public static void OptimizeWithScale()
         {
