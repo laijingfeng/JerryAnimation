@@ -164,11 +164,14 @@ namespace EditorTool
             }
             _OptmizeAnimationFloat_X(floatSize);
             _GetOptSize();
+
+            LogOrigin();
+            LogOpt();
         }
 
-        public void Optimize_Scale_Float3()
+        public void Optimize_Scale_Float3(bool doScale)
         {
-            Optimize(true, 3);
+            Optimize(doScale, 3);
         }
 
         public void LogOrigin()
@@ -183,7 +186,6 @@ namespace EditorTool
 
         public void LogDelta()
         {
-
         }
 
         void _logSize(long fileSize, int memSize, int inspectorSize)
@@ -196,31 +198,56 @@ namespace EditorTool
     public class OptimizeAnimationClipTool
     {
         static List<AnimationOpt> _AnimOptList = new List<AnimationOpt>();
+        /// <summary>
+        /// 错误列表
+        /// </summary>
         static List<string> _Errors = new List<string>();
         static int _Index = 0;
 
         [MenuItem("Assets/Animation/裁剪浮点数去除Scale")]
-        public static void Optimize()
+        public static void OptimizeWithScale()
         {
             _AnimOptList = FindAnims();
             if (_AnimOptList.Count > 0)
             {
                 _Index = 0;
                 _Errors.Clear();
-                EditorApplication.update = ScanAnimationClip;
+                EditorApplication.update = ScanAnimationClipWithScale;
             }
         }
 
-        private static void ScanAnimationClip()
+        [MenuItem("Assets/Animation/裁剪浮点数")]
+        public static void OptimizeWithoutScale()
+        {
+            _AnimOptList = FindAnims();
+            if (_AnimOptList.Count > 0)
+            {
+                _Index = 0;
+                _Errors.Clear();
+                EditorApplication.update = ScanAnimationClipWithoutScale;
+            }
+        }
+
+        private static void ScanAnimationClipWithScale()
+        {
+            DoScanAnimationClip(true);
+        }
+
+        private static void ScanAnimationClipWithoutScale()
+        {
+            DoScanAnimationClip(false);
+        }
+
+        private static void DoScanAnimationClip(bool doScale)
         {
             AnimationOpt _AnimOpt = _AnimOptList[_Index];
             bool isCancel = EditorUtility.DisplayCancelableProgressBar("优化AnimationClip", _AnimOpt.path, (float)_Index / (float)_AnimOptList.Count);
-            _AnimOpt.Optimize_Scale_Float3();
+            _AnimOpt.Optimize_Scale_Float3(doScale);
             _Index++;
             if (isCancel || _Index >= _AnimOptList.Count)
             {
                 EditorUtility.ClearProgressBar();
-                Debug.Log(string.Format("--优化完成--    错误数量: {0}    总数量: {1}/{2}    错误信息↓:\n{3}\n----------输出完毕----------", _Errors.Count, _Index, _AnimOptList.Count, string.Join(string.Empty, _Errors.ToArray())));
+                Debug.Log(string.Format("--优化完成--错误数量:{0} 总数量:{1}/{2} 错误信息↓:\n{3}\n----------输出完毕----------", _Errors.Count, _Index, _AnimOptList.Count, string.Join(string.Empty, _Errors.ToArray())));
                 Resources.UnloadUnusedAssets();
                 GC.Collect();
                 AssetDatabase.SaveAssets();
@@ -231,6 +258,9 @@ namespace EditorTool
             }
         }
 
+        /// <summary>
+        /// 查找过的资源
+        /// </summary>
         static Dictionary<string, AnimationOpt> _cachedOpts = new Dictionary<string, AnimationOpt>();
 
         static AnimationOpt _GetNewAOpt(string path)
@@ -248,13 +278,18 @@ namespace EditorTool
             return opt;
         }
 
+        /// <summary>
+        /// 查找动画
+        /// </summary>
+        /// <returns></returns>
         static List<AnimationOpt> FindAnims()
         {
             string[] guids = null;
             List<string> path = new List<string>();
             List<AnimationOpt> assets = new List<AnimationOpt>();
+
             UnityEngine.Object[] objs = Selection.GetFiltered(typeof(object), SelectionMode.Assets);
-            if (objs.Length > 0)
+            if (objs.Length > 0)//选中文件
             {
                 for (int i = 0; i < objs.Length; i++)
                 {
@@ -263,23 +298,30 @@ namespace EditorTool
                         string p = AssetDatabase.GetAssetPath(objs[i]);
                         AnimationOpt animopt = _GetNewAOpt(p);
                         if (animopt != null)
+                        {
                             assets.Add(animopt);
+                        }
                     }
                     else
+                    {
                         path.Add(AssetDatabase.GetAssetPath(objs[i]));
+                    }
                 }
                 guids = AssetDatabase.FindAssets(string.Format("t:{0}", typeof(AnimationClip).ToString().Replace("UnityEngine.", "")), path.ToArray());
             }
-            else
+            else//所有文件
             {
                 guids = AssetDatabase.FindAssets(string.Format("t:{0}", typeof(AnimationClip).ToString().Replace("UnityEngine.", "")));
             }
+
             for (int i = 0; i < guids.Length; i++)
             {
                 string assetPath = AssetDatabase.GUIDToAssetPath(guids[i]);
                 AnimationOpt animopt = _GetNewAOpt(assetPath);
                 if (animopt != null)
+                {
                     assets.Add(animopt);
+                }
             }
             return assets;
         }
