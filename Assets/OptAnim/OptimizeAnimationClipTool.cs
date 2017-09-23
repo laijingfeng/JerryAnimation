@@ -13,10 +13,10 @@
 
 using System;
 using System.Collections.Generic;
-using UnityEngine;
+using System.IO;
 using System.Reflection;
 using UnityEditor;
-using System.IO;
+using UnityEngine;
 
 namespace EditorTool
 {
@@ -274,9 +274,9 @@ namespace EditorTool
         /// <summary>
         /// 查找过的资源
         /// </summary>
-        static Dictionary<string, AnimationOpt> _cachedOpts = new Dictionary<string, AnimationOpt>();
+        static private Dictionary<string, AnimationOpt> _cachedOpts = new Dictionary<string, AnimationOpt>();
 
-        static AnimationOpt _GetNewAOpt(string path)
+        static private AnimationOpt _GetNewAOpt(string path)
         {
             AnimationOpt opt = null;
             if (!_cachedOpts.ContainsKey(path))
@@ -295,7 +295,7 @@ namespace EditorTool
         /// 查找动画
         /// </summary>
         /// <returns></returns>
-        static List<AnimationOpt> FindAnims()
+        static private List<AnimationOpt> FindAnims()
         {
             string[] guids = null;
             List<string> path = new List<string>();
@@ -320,22 +320,30 @@ namespace EditorTool
                         path.Add(AssetDatabase.GetAssetPath(objs[i]));
                     }
                 }
-                guids = AssetDatabase.FindAssets(string.Format("t:{0}", typeof(AnimationClip).ToString().Replace("UnityEngine.", "")), path.ToArray());
-            }
-            else//所有文件
-            {
-                guids = AssetDatabase.FindAssets(string.Format("t:{0}", typeof(AnimationClip).ToString().Replace("UnityEngine.", "")));
-            }
-
-            for (int i = 0; i < guids.Length; i++)
-            {
-                string assetPath = AssetDatabase.GUIDToAssetPath(guids[i]);
-                AnimationOpt animopt = _GetNewAOpt(assetPath);
-                if (animopt != null)
+                if (path.Count > 0)
                 {
-                    assets.Add(animopt);
+                    guids = AssetDatabase.FindAssets(string.Format("t:{0}", typeof(AnimationClip).ToString().Replace("UnityEngine.", "")), path.ToArray());
                 }
             }
+            else
+            {
+                return assets;//不能不选文件
+                //guids = AssetDatabase.FindAssets(string.Format("t:{0}", typeof(AnimationClip).ToString().Replace("UnityEngine.", "")));//所有文件
+            }
+
+            if (guids != null && guids.Length > 0)
+            {
+                for (int i = 0; i < guids.Length; i++)
+                {
+                    string assetPath = AssetDatabase.GUIDToAssetPath(guids[i]);
+                    AnimationOpt animopt = _GetNewAOpt(assetPath);
+                    if (animopt != null)
+                    {
+                        assets.Add(animopt);
+                    }
+                }
+            }
+
             return assets;
         }
     }
