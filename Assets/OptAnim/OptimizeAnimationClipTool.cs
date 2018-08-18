@@ -1,6 +1,6 @@
 ﻿//****************************************************************************
 //
-//  File:      OptimizeAnimationClipTool.cs
+//  File:OptimizeAnimationClipTool.cs
 //
 //  Copyright (c) SuiJiaBin
 //
@@ -86,7 +86,7 @@ namespace EditorTool
 
         int _GetMemSize()
         {
-            return Profiler.GetRuntimeMemorySize(_clip);
+            return UnityEngine.Profiling.Profiler.GetRuntimeMemorySize(_clip);
         }
 
         int _GetInspectorSize()
